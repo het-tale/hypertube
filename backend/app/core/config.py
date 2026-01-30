@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # Application
-    APP_NAME: str = "FastAPI Auth Template"
+    APP_NAME: str = "Hypertube"
     DEBUG: bool = False
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
 
