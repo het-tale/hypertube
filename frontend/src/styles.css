@@ -148,16 +148,16 @@ code {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+  /* body {
+    @apply bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-white transition-colors duration-300;
+  } */
 }
 
-.glass-nav {
+/* .glass-nav {
   background: rgba(5, 5, 5, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-}
+} */
 
 .hero-gradient {
   background: linear-gradient(
@@ -166,4 +166,17 @@ code {
     rgba(5, 5, 5, 0.4) 60%,
     rgba(5, 5, 5, 0.8) 100%
   );
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.glass-nav {
+  background: rgba(11, 11, 11, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }

@@ -6,7 +6,7 @@ import {
 // import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 // import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import Header from '../components/Header'
+import Header from '../components/Navbar/index'
 
 // import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
@@ -38,7 +38,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   },
 
   component: () => (
-    <>
+    <div className="bg-background-light dark:bg-background-dark font-display text-white dark:text-white transition-colors duration-300">
       <Header />
       <Outlet />
       {/* <TanStackDevtools
@@ -53,6 +53,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           TanStackQueryDevtools,
         ]}
       /> */}
-    </>
+    </div>
   ),
 })
