@@ -27,8 +27,37 @@ npm run test
 
 ## Styling
 
-This project uses CSS for styling.
+This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 
+
+## Linting & Formatting
+
+
+This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
+
+```bash
+npm run lint
+npm run format
+npm run check
+```
+
+
+## Shadcn
+
+Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
+
+```bash
+pnpm dlx shadcn@latest add button
+```
+
+
+# Paraglide i18n
+
+This add-on wires up ParaglideJS for localized routing and message formatting.
+
+- Messages live in `project.inlang/messages`.
+- URLs are localized through the Paraglide Vite plugin and router `rewrite` hooks.
+- Run the dev server or build to regenerate the `src/paraglide` outputs.
 
 
 

@@ -2,14 +2,16 @@
   "projectName": "frontend",
   "mode": "file-router",
   "typescript": true,
-  "tailwind": false,
   "packageManager": "npm",
-  "git": true,
-  "install": true,
+  "tailwind": true,
   "addOnOptions": {},
+  "git": true,
   "version": 1,
   "framework": "react-cra",
   "chosenAddOns": [
-    "start"
+    "eslint",
+    "shadcn",
+    "paraglide",
+    "tanstack-query"
   ]
 }
