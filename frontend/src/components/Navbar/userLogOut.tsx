@@ -1,4 +1,4 @@
-const UserLogedOutNavbar = ({ login }: { login: () => void }) => {
+const UserLogedOutNavbar = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-white/10">
       <div className="max-w-300 mx-auto px-6 h-20 flex items-center justify-between">
@@ -14,7 +14,6 @@ const UserLogedOutNavbar = ({ login }: { login: () => void }) => {
         </div>
         <div className="flex items-center gap-4">
           <button
-            onClick={login}
             className="px-5 h-10 text-sm font-bold hover:text-primary transition-colors"
           >
             Login

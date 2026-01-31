@@ -1,24 +1,18 @@
-import { useState, Activity } from 'react'
 import UserLoggedOutNavbar from './userLogOut'
+import { useMatches } from '@tanstack/react-router'
 import UserLoggedInNavbar from './userLogedIn'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 export default function Header() {
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(true)
-  const login = () => {
-    setIsUserLoggedIn(true)
-  }
-  const logout = () => {
-    console.log('logout')
-    setIsUserLoggedIn(false)
-  }
+  const { isAuthenticated, isLoading } = useAuth()
+  const matches = useMatches()
+  const currentPath = matches[matches.length - 1]?.pathname
 
-  return (
-    <>
-      <Activity mode={isUserLoggedIn ? 'hidden' : 'visible'}>
-        <UserLoggedOutNavbar login={login} />
-      </Activity>
-      <Activity mode={isUserLoggedIn ? 'visible' : 'hidden'}>
-        <UserLoggedInNavbar logout={logout} />
-      </Activity>
-    </>
-  )
+  // Routes where we DON'T want to show the header
+  const noHeaderRoutes = ['/SignIn', '/Signup']
+  const shouldShowHeader = !noHeaderRoutes.includes(currentPath)
+
+  if (!isLoading && !shouldShowHeader) {
+    return null // or a loading spinner
+  }
+  return isAuthenticated ? <UserLoggedInNavbar /> : <UserLoggedOutNavbar />
 }

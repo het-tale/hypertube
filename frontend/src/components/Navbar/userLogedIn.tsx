@@ -1,6 +1,6 @@
-const UserLogedInNavbar = ({ logout }: { logout: () => void }) => {
+const UserLogedInNavbar = () => {
   return (
-    <header className="sticky top-0 z-50 glass-nav border-b border-white/5 dark:border-border-dark px-6 lg:px-20 py-4">
+    <header className="sticky top-0 z-50 glass-nav dark:border-border-dark px-6 lg:px-20 py-4">
       <div className="max-w-360 mx-auto flex items-center justify-between gap-8">
         <div className="flex items-center gap-10">
           <div className="flex items-center gap-3 text-primary">
@@ -52,7 +52,6 @@ const UserLogedInNavbar = ({ logout }: { logout: () => void }) => {
             <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background-dark"></span>
           </button>
           <div
-            onClick={logout}
             className="size-10 rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-primary transition-all"
           >
             <img

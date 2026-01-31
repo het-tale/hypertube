@@ -176,7 +176,26 @@ code {
   scrollbar-width: none;
 }
 .glass-nav {
-  background: rgba(11, 11, 11, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* background: rgba(11, 11, 11, 0.8); */
+  background: black;
+  /* backdrop-filter: blur(12px); */
+  /* -webkit-backdrop-filter: blur(12px); */
+}
+
+.glass-card {
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+}
+.movie-bg {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url(https://lh3.googleusercontent.com/aida-public/AB6AXuCntiPESiWYt5YBSesmEcLIFcqji_k_wWzpdaRmnx6SCLMtDZDrbbC_6xLapO19bMonYeLVLDjwAAnRF0qbojiaFNqkb8Hj7j4BJZoKsO--5NRZJKtj_mJsgsAzuTDRi4dK3K3-Tg73dY4DSciZnxDxoLHvdRfzmta4j2Q2IH2RXVrCdjadM_zoP12gJDstQlTjKkUTRzHj2XsLYa05hGuQfUPddI4rVjfaEIH-ZL3Mju39Djd8Is072crBc4Hn8SsYZvZj2irC7Fo);
+}
+
+.cinematic-bg {
+  background:
+    linear-gradient(rgba(33, 17, 17, 0.85), rgba(33, 17, 17, 0.95)),
+    url('https://images.unsplash.com/photo-1574267432553-4b4628081c31?q=80&w=2000&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
 }
