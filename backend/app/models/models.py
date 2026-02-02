@@ -1,11 +1,14 @@
 """Database models."""
 from datetime import datetime
+# from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from app.movies.schemas import MediaType
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.security import utcnow
 from app.db.session import Base
+from app.models.association_tables import media_genres
 
 
 class User(Base):
@@ -47,3 +50,46 @@ class RefreshToken(Base):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="refresh_tokens")
+
+
+
+class Movie(Base):
+
+    __tablename__ = "movies"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    title : Mapped[str]  = mapped_column(String(255), unique=True, index=True)
+    media_type : Mapped[MediaType] = mapped_column(Enum(MediaType))
+    description: Mapped[str | None] = mapped_column(Text)
+    release_year: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    # Type-specific fields
+    runtime_minutes: Mapped[int | None]  # Movies
+    num_seasons: Mapped[int | None]  # TV shows
+    
+    # Relationships
+    genres: Mapped[list["Genre"]] = relationship(
+        secondary=media_genres,
+        back_populates="media_items"
+    )
+
+# class Actors(Base):
+
+
+# class WatchList(Base):
+
+class Genre(Base):
+    __tablename__ = "genres"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    
+    # Reverse relationship
+    media_items: Mapped[list["Movie"]] = relationship(
+        secondary=media_genres,
+        back_populates="genres"
+    )
+    
+    def __repr__(self):
+        return f"<Genre(name='{self.name}')>"
