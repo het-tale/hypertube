@@ -50,6 +50,24 @@ def get_oauth_config(provider: str) -> dict:
             "redirect_uri": settings.OAUTH_GOOGLE_REDIRECT_URI,
             "scope": "openid profile email",
         },
+        "github" : {
+            "client_id" : settings.OAUTH_GITHUB_CLIENT_ID,
+            "client_secret" : settings.OAUTH_GITHUB_CLIENT_SECRET,
+            "authorize_url" : settings.OAUTH_GITHUB_AUTHORIZE_URL,
+            "token_url" : settings.OAUTH_GITHUB_TOKEN_URL,
+            "user_info_url" : settings.OAUTH_GITHUB_USER_INFO_URL,
+            "redirect_uri" : settings.OAUTH_GITHUB_REDIRECT_URI,
+            "scope" : "user:email",
+        },
+        "discord" : {
+            "client_id" : settings.OAUTH_DISCORD_CLIENT_ID,
+            "client_secret" : settings.OAUTH_DISCORD_CLIENT_SECRET,
+            "authorize_url" : settings.OAUTH_DISCORD_AUTHORIZE_URL,
+            "token_url" : settings.OAUTH_DISCORD_TOKEN_URL,
+            "user_info_url" : settings.OAUTH_DISCORD_USER_INFO_URL,
+            "redirect_uri" : settings.OAUTH_DISCORD_REDIRECT_URI,
+            "scope" : "identify email",
+        }
     }
     
     if provider not in configs:
@@ -71,9 +89,12 @@ async def exchange_code_for_token(provider: str, code: str) -> dict:
         "client_secret": config["client_secret"],
         "redirect_uri": config["redirect_uri"],
     }
-    
+
+    headers = {"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded"}
+
+
     async with httpx.AsyncClient() as client:
-        response = await client.post(config["token_url"], data=data)
+        response = await client.post(config["token_url"], data=data, headers=headers)
         
         if response.status_code != 200:
             raise HTTPException(
@@ -86,12 +107,13 @@ async def exchange_code_for_token(provider: str, code: str) -> dict:
 async def get_user_info_from_provider(provider: str, access_token: str) -> dict:
     """Get user info from OAuth provider."""
     config = get_oauth_config(provider)
-    
+
     headers = {"Authorization": f"Bearer {access_token}"}
+    headers.update({"Accept": "application/json"})
     
     async with httpx.AsyncClient() as client:
         response = await client.get(config["user_info_url"], headers=headers)
-        
+
         if response.status_code != 200:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -121,6 +143,24 @@ def normalize_user_info(provider: str, raw_data: dict) -> OAuthUserInfo:
             first_name=raw_data.get("given_name"),
             last_name=raw_data.get("family_name"),
             profile_picture=raw_data.get("picture"),
+        )
+    elif provider == "github":
+        return OAuthUserInfo(
+            provider_user_id=str(raw_data["id"]),
+            email=raw_data.get("email") or f"github_user_{raw_data['id']}@example.com",  # GitHub email can be null
+            username=raw_data.get("login"),
+            first_name="",
+            last_name="",
+            profile_picture=raw_data.get("avatar_url"),
+        )
+    elif provider == "discord":
+        return OAuthUserInfo(
+            provider_user_id=raw_data["user"].get("id"),
+            email=raw_data["user"].get("email") or f"discord_user_{raw_data['user']['id']}@example.com",
+            username=raw_data["user"].get("username"),
+            first_name="",
+            last_name="",
+            profile_picture=f"https://cdn.discordapp.com/avatars/{raw_data['user']['id']}/{raw_data['user']['avatar']}.png" if raw_data["user"].get("avatar") else None,
         )
     
     else:
@@ -201,26 +241,28 @@ async def oauth_callback(
             url=f"{settings.FRONTEND_URL}/login?error=provider_mismatch",
             status_code=status.HTTP_302_FOUND
         )
-    
     # Clear state from session (single use)
     del request.session["oauth_state"]
     del request.session["oauth_provider"]
     
+
     try:
         # Exchange code for access token
+
         token_data = await exchange_code_for_token(provider, code)
         access_token = token_data["access_token"]
         
         # Get user info from provider
+
         raw_user_data = await get_user_info_from_provider(provider, access_token)
-        print("raw data", raw_user_data)
         # Normalize user info
         user_info = normalize_user_info(provider, raw_user_data)
-        
+
         # Get or create user
         user, is_new = await OAuthService.get_or_create_oauth_user(
             db, provider, user_info, raw_user_data
         )
+
         
         if not user.is_active:
             return RedirectResponse(
@@ -237,8 +279,8 @@ async def oauth_callback(
         
         await db.commit()
 
-        print("access_toke", jwt_access_token)
-        print("refesh", jwt_refresh_token)
+        # print("access_toke", jwt_access_token)
+        # print("refesh", jwt_refresh_token)
         # Set cookies
         
         # Redirect to frontend
