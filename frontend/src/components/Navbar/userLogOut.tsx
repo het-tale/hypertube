@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 const UserLogedOutNavbar = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-white/10">
@@ -12,15 +13,19 @@ const UserLogedOutNavbar = () => {
             Hypertube
           </h1>
         </div>
-        <div className="flex items-center gap-4">
-          <button
-            className="px-5 h-10 text-sm font-bold hover:text-primary transition-colors"
+        <div className="flex items-center justify-center gap-4">
+          <Link
+            to="/SignIn"
+            className="px-5 h-10 flex  items-center justify-center text-sm font-bold hover:text-primary transition-colors"
           >
             Login
-          </button>
-          <button className="bg-primary text-white px-6 h-10 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+          </Link>
+          <Link
+            to="/Signup"
+            className="bg-primary flex items-center justify-center text-white px-6 h-10 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+          >
             Sign Up
-          </button>
+          </Link>
         </div>
       </div>
     </header>

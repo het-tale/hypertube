@@ -29,17 +29,27 @@ class UserService:
             email=user_in.email,
             hashed_password=get_password_hash(user_in.password),
             full_name=user_in.full_name,
+            profile_picture=user_in.profile_picture
         )
         db.add(db_user)
         await db.flush()
         await db.refresh(db_user)
         return db_user
+    
+    @staticmethod
+    async def get_by_username(db: AsyncSession, username: str):
+        """ Get User by username"""
+        result = await db.execute(select(User).where(User.username == username))
+        return result.scalar_one_or_none()
+
 
     @staticmethod
     async def authenticate(db: AsyncSession, email: str, password: str) -> User | None:
         """Authenticate user with email and password."""
         user = await UserService.get_by_email(db, email)
         if not user:
+            return None
+        if not user.hashed_password:
             return None
         if not verify_password(password, user.hashed_password):
             return None

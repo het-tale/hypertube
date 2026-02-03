@@ -9,6 +9,8 @@ class UserBase(BaseModel):
 
     email: EmailStr
     full_name: str | None = None
+    profile_picture : str | None = None
+
 
 
 class UserCreate(UserBase):

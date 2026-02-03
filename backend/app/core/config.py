@@ -35,6 +35,28 @@ class Settings(BaseSettings):
     COOKIE_DOMAIN: str | None = None
     COOKIE_HTTPONLY: bool = True
 
+
+
+
+    # Oauth settings 42 
+    OAUTH_42_CLIENT_ID: str
+    OAUTH_42_CLIENT_SECRET: str
+    OAUTH_42_REDIRECT_URI: str = "http://localhost:8000/auth/callback/42"
+    OAUTH_42_AUTHORIZE_URL: str = "https://api.intra.42.fr/oauth/authorize"
+    OAUTH_42_TOKEN_URL: str = "https://api.intra.42.fr/oauth/token"
+    OAUTH_42_USER_INFO_URL: str = "https://api.intra.42.fr/v2/me"
+    
+    # OAuth Settings - Google
+    OAUTH_GOOGLE_CLIENT_ID: str
+    OAUTH_GOOGLE_CLIENT_SECRET: str
+    OAUTH_GOOGLE_REDIRECT_URI: str = "http://localhost:8000/auth/callback/google"
+    OAUTH_GOOGLE_AUTHORIZE_URL: str = "https://accounts.google.com/o/oauth2/v2/auth"
+    OAUTH_GOOGLE_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
+    OAUTH_GOOGLE_USER_INFO_URL: str = "https://www.googleapis.com/oauth2/v2/userinfo"
+    
+    # Frontend URL (for redirects after OAuth)
+    FRONTEND_URL: str = "http://localhost:3000"
+
     @property
     def allowed_origins_list(self) -> List[str]:
         """Get ALLOWED_ORIGINS as a list."""

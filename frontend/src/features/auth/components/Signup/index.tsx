@@ -41,7 +41,7 @@ const Signup = () => {
   }
 
   const handleOAuthRegister = (provider: 'google' | 'github' | '42') => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/${provider}`
+    window.location.href = `${import.meta.env.VITE_API_URL}auth/login/${provider}`
   }
 
   return (
