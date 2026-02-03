@@ -35,6 +35,60 @@ class Settings(BaseSettings):
     COOKIE_DOMAIN: str | None = None
     COOKIE_HTTPONLY: bool = True
 
+
+
+
+    # Oauth settings 42 
+    OAUTH_42_CLIENT_ID: str
+    OAUTH_42_CLIENT_SECRET: str
+    OAUTH_42_REDIRECT_URI: str = "http://localhost:8000/auth/42/callback/"
+    OAUTH_42_AUTHORIZE_URL: str = "https://api.intra.42.fr/oauth/authorize"
+    OAUTH_42_TOKEN_URL: str = "https://api.intra.42.fr/oauth/token"
+    OAUTH_42_USER_INFO_URL: str = "https://api.intra.42.fr/v2/me"
+    
+    # OAuth Settings - Google
+    OAUTH_GOOGLE_CLIENT_ID: str
+    OAUTH_GOOGLE_CLIENT_SECRET: str
+    OAUTH_GOOGLE_REDIRECT_URI: str = "http://localhost:8000/auth/google/callback"
+    OAUTH_GOOGLE_AUTHORIZE_URL: str = "https://accounts.google.com/o/oauth2/v2/auth"
+    OAUTH_GOOGLE_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
+    OAUTH_GOOGLE_USER_INFO_URL: str = "https://www.googleapis.com/oauth2/v2/userinfo"
+
+
+    #OAuth Settings - Discord
+
+    OAUTH_DISCORD_CLIENT_ID: str
+    OAUTH_DISCORD_CLIENT_SECRET: str
+    OAUTH_DISCORD_REDIRECT_URI: str = "http://localhost:8000/auth/discord/callback"
+    OAUTH_DISCORD_AUTHORIZE_URL: str = "https://discord.com/oauth2/authorize"
+    OAUTH_DISCORD_TOKEN_URL: str = "https://discord.com/api/oauth2/token"
+    OAUTH_DISCORD_USER_INFO_URL: str = "https://discord.com/api/oauth2/@me"
+
+
+    #OAuth Settings - Github
+
+    OAUTH_GITHUB_CLIENT_ID: str
+    OAUTH_GITHUB_CLIENT_SECRET: str
+    OAUTH_GITHUB_REDIRECT_URI: str = "http://localhost:8000/auth/github/callback"
+    OAUTH_GITHUB_AUTHORIZE_URL: str = "https://github.com/login/oauth/authorize"
+    OAUTH_GITHUB_TOKEN_URL: str = "https://github.com/login/oauth/access_token"
+    OAUTH_GITHUB_USER_INFO_URL: str = "https://api.github.com/user"
+    OAUTH_GITHUB_EMAIL_URL: str = "https://api.github.com/user/emails"
+
+
+    #OAuth Settings - FACEBOOK
+
+    # OAUTH_FACEBOOK_CLIENT_ID: str
+    # OAUTH_FACEBOOK_CLIENT_SECRET: str
+    # OAUTH_FACEBOOK_REDIRECT_URI: str = "http://localhost:8000/auth/FACEBOOK/callback"
+    # OAUTH_FACEBOOK_AUTHORIZE_URL: str = "https://FACEBOOK.com/oauth2/authorize"
+    # OAUTH_FACEBOOK_TOKEN_URL: str = "https://FACEBOOK.com/api/oauth2/token"
+    # OAUTH_FACEBOOK_USER_INFO_URL: str = "https://discord.com/api/oauth2/users/@me"
+
+    
+    # Frontend URL (for redirects after OAuth)
+    FRONTEND_URL: str = "http://localhost:3000"
+
     @property
     def allowed_origins_list(self) -> List[str]:
         """Get ALLOWED_ORIGINS as a list."""
