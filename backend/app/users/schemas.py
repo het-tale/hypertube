@@ -9,6 +9,10 @@ class UserBase(BaseModel):
 
     email: EmailStr
     full_name: str | None = None
+    profile_picture : str | None = None
+    username : str | None = None
+    preferred_language : str = "en"
+
 
 
 class UserCreate(UserBase):
@@ -23,6 +27,8 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     full_name: str | None = None
     password: str | None = Field(None, min_length=8, max_length=100)
+    username: str | None = None
+    preferred_language: str | None = None
 
 
 class UserResponse(UserBase):
@@ -35,6 +41,7 @@ class UserResponse(UserBase):
     is_superuser: bool
     created_at: datetime
     updated_at: datetime
+    
 
 
 class UserInDB(UserResponse):

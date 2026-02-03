@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth.router import router as auth_router
 from app.core.config import settings
 from app.users.router import router as users_router
+from app.Oauth.router import router as oauth_router
+from starlette.middleware.sessions import SessionMiddleware
 
 
 def create_application() -> FastAPI:
@@ -24,10 +26,16 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.SECRET_KEY,  # Use your existing secret
+        max_age=600,  # 10 minutes
+    )
 
     # Include routers
     app.include_router(auth_router)
     app.include_router(users_router)
+    app.include_router(oauth_router)
 
     @app.get("/")
     async def root():
