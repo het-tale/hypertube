@@ -1,11 +1,11 @@
 from app.db.session import Base
 from sqlalchemy.orm import Mapped, relationship
 
-from models.cast import Cast
-from models.comment import Comment
-from models.subtitle import Subtitle
-from models.watch_history import WatchHistory
-from models.video import Video
+from app.models.cast import Cast
+from app.models.comment import Comment
+from app.models.subtitle import Subtitle
+from app.models.watch_history import WatchHistory
+from app.models.video import Video
 
 
 class Movie(Base):
