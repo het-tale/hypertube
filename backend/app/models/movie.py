@@ -1,12 +1,14 @@
+from typing import TYPE_CHECKING
 from sqlalchemy import String
 from app.db.session import Base
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
-from app.models.cast import Cast
-from app.models.comment import Comment
-from app.models.subtitle import Subtitle
-from app.models.watch_history import WatchHistory
-from app.models.video import Video
+if TYPE_CHECKING:
+    from app.models.cast import Cast
+    from app.models.comment import Comment
+    from app.models.subtitle import Subtitle
+    from app.models.watch_history import WatchHistory
+    from app.models.video import Video
 
 
 class Movie(Base):

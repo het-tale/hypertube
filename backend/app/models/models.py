@@ -1,6 +1,7 @@
 """Database models."""
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -15,8 +16,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.security import utcnow
 from app.db.session import Base
-from app.models.comment import Comment
-from app.models.watch_history import WatchHistory
+
+if TYPE_CHECKING:
+    from app.models.comment import Comment
+    from app.models.watch_history import WatchHistory
 
 
 class User(Base):
