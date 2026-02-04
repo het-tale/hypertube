@@ -46,3 +46,16 @@ class WatchHistory(Base):
     user: Mapped["User"] = relationship("User", back_populates="watch_history")
 
     __table_args__ = UniqueConstraint("movie_id", "user_id", name="movie_user_uc")
+
+    def __repr__(self) -> str:
+        return f"<Watch History(id={self.id}, movie_id='{self.movie_id}', watched_at='{self.watched_at}')>"
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "movie_id": self.movie_id,
+            "user_id": self.user_id,
+            "watched_at": self.watched_at,
+            "watch_duration": self.watch_duration,
+            "completed": self.completed,
+        }
