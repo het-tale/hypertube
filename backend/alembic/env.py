@@ -13,6 +13,13 @@ from app.core.config import settings
 from app.db.session import Base
 # from app.models import models  # noqa: F401 - needed for Alembic to see models
 from app.models import models  # noqa: F401 - needed for Alembic to see models
+from app.models.movie import Movie
+from app.models.cast import Cast
+from app.models.video import Video
+from app.models.comment import Comment
+from app.models.subtitle import Subtitle
+from app.models.watch_history import WatchHistory
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
