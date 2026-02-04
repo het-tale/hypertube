@@ -43,7 +43,7 @@ class Comment(Base):
         DateTime, default=utcnow, onupdate=utcnow
     )
     movie: Mapped["Movie"] = relationship("Movie", back_populates="comment")
-    movie: Mapped["User"] = relationship("User", back_populates="comment")
+    user: Mapped["User"] = relationship("User", back_populates="comment")
 
     def __repr__(self) -> str:
         return f"<Comment(id={self.id}, movie_id='{self.movie_id}', content='{self.content}')>"
