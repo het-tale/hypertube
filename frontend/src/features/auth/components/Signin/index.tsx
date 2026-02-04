@@ -40,7 +40,7 @@ const SignIn = () => {
     provider: 'google' | '42' | 'discord' | 'github',
   ) => {
     // Redirect to OAuth endpoint
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/${provider}`
+    window.location.href = `${import.meta.env.VITE_API_URL}auth/login/${provider}`
   }
 
   return (

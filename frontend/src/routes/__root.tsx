@@ -38,21 +38,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   },
 
   component: () => (
-    <div className="bg-background-light dark:bg-background-dark font-display text-white dark:text-white transition-colors duration-300">
+    <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark font-display text-white dark:text-white transition-colors duration-300 min-h-screen">
       <Header />
-      <Outlet />
-      {/* <TanStackDevtools
-        config={{
-          position: 'bottom-right',
-        }}
-        plugins={[
-          {
-            name: 'Tanstack Router',
-            render: <TanStackRouterDevtoolsPanel />,
-          },
-          TanStackQueryDevtools,
-        ]}
-      /> */}
+      <div className="flex-1 overflow-hidden">
+        <Outlet />
+      </div>
     </div>
   ),
 })

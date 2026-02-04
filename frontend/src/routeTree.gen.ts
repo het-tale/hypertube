@@ -9,13 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as SignupRouteImport } from './routes/Signup'
 import { Route as SignInRouteImport } from './routes/SignIn'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
+import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings/notifications'
+import { Route as SettingsFRouteImport } from './routes/settings/f'
+import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
+import { Route as SettingsAccountRouteImport } from './routes/settings/account'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoI18nRouteImport } from './routes/demo.i18n'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -36,6 +48,36 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsFRoute = SettingsFRouteImport.update({
+  id: '/f',
+  path: '/f',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsBillingRoute = SettingsBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsAccountRoute = SettingsAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
@@ -52,16 +94,30 @@ export interface FileRoutesByFullPath {
   '/SignIn': typeof SignInRoute
   '/Signup': typeof SignupRoute
   '/home': typeof HomeRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/settings/billing': typeof SettingsBillingRoute
+  '/settings/f': typeof SettingsFRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/security': typeof SettingsSecurityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/SignIn': typeof SignInRoute
   '/Signup': typeof SignupRoute
   '/home': typeof HomeRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/settings/billing': typeof SettingsBillingRoute
+  '/settings/f': typeof SettingsFRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/security': typeof SettingsSecurityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +125,15 @@ export interface FileRoutesById {
   '/SignIn': typeof SignInRoute
   '/Signup': typeof SignupRoute
   '/home': typeof HomeRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/settings/billing': typeof SettingsBillingRoute
+  '/settings/f': typeof SettingsFRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/security': typeof SettingsSecurityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +142,45 @@ export interface FileRouteTypes {
     | '/SignIn'
     | '/Signup'
     | '/home'
+    | '/settings'
     | '/demo/i18n'
     | '/demo/tanstack-query'
+    | '/settings/account'
+    | '/settings/billing'
+    | '/settings/f'
+    | '/settings/notifications'
+    | '/settings/profile'
+    | '/settings/security'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/SignIn'
     | '/Signup'
     | '/home'
+    | '/settings'
     | '/demo/i18n'
     | '/demo/tanstack-query'
+    | '/settings/account'
+    | '/settings/billing'
+    | '/settings/f'
+    | '/settings/notifications'
+    | '/settings/profile'
+    | '/settings/security'
   id:
     | '__root__'
     | '/'
     | '/SignIn'
     | '/Signup'
     | '/home'
+    | '/settings'
     | '/demo/i18n'
     | '/demo/tanstack-query'
+    | '/settings/account'
+    | '/settings/billing'
+    | '/settings/f'
+    | '/settings/notifications'
+    | '/settings/profile'
+    | '/settings/security'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,12 +188,20 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   SignupRoute: typeof SignupRoute
   HomeRoute: typeof HomeRoute
+  SettingsRoute: typeof SettingsRouteWithChildren
   DemoI18nRoute: typeof DemoI18nRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -138,6 +230,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/security': {
+      id: '/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof SettingsSecurityRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/f': {
+      id: '/settings/f'
+      path: '/f'
+      fullPath: '/settings/f'
+      preLoaderRoute: typeof SettingsFRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/billing': {
+      id: '/settings/billing'
+      path: '/billing'
+      fullPath: '/settings/billing'
+      preLoaderRoute: typeof SettingsBillingRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/account': {
+      id: '/settings/account'
+      path: '/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof SettingsAccountRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
       path: '/demo/tanstack-query'
@@ -155,11 +289,34 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface SettingsRouteChildren {
+  SettingsAccountRoute: typeof SettingsAccountRoute
+  SettingsBillingRoute: typeof SettingsBillingRoute
+  SettingsFRoute: typeof SettingsFRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
+  SettingsSecurityRoute: typeof SettingsSecurityRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAccountRoute: SettingsAccountRoute,
+  SettingsBillingRoute: SettingsBillingRoute,
+  SettingsFRoute: SettingsFRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
+  SettingsSecurityRoute: SettingsSecurityRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SignInRoute: SignInRoute,
   SignupRoute: SignupRoute,
   HomeRoute: HomeRoute,
+  SettingsRoute: SettingsRouteWithChildren,
   DemoI18nRoute: DemoI18nRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
 }
