@@ -7,6 +7,8 @@ from app.core.config import settings
 from app.users.router import router as users_router
 from app.Oauth.router import router as oauth_router
 from starlette.middleware.sessions import SessionMiddleware
+from fastapi.staticfiles import StaticFiles
+
 
 
 def create_application() -> FastAPI:
@@ -31,6 +33,8 @@ def create_application() -> FastAPI:
         secret_key=settings.SECRET_KEY,  # Use your existing secret
         max_age=600,  # 10 minutes
     )
+
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
     # Include routers
     app.include_router(auth_router)

@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Hypertube"
     DEBUG: bool = False
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
+    API_DOMAIN: str = "http://localhost:8000"
 
     # Cookie Settings
     COOKIE_SECURE: bool = True

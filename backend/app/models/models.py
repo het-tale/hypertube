@@ -1,7 +1,7 @@
 """Database models."""
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import TEXT, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.security import utcnow
@@ -26,6 +26,8 @@ class User(Base):
     )
     profile_picture : Mapped[str | None] = mapped_column(String(500), nullable=True)
     preferred_language :Mapped[str] = mapped_column(String(10), default="en")
+    bio : Mapped[str | None] = mapped_column(Text, nullable=True )
+    email_verified : Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
 
     # Relationships
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(

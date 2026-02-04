@@ -30,9 +30,16 @@ class Base(DeclarativeBase):
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Database session dependency.
+    Commits on success, rolls back on error.
+    """
     async with async_session_maker() as session:
         try:
             yield session
+            await session.commit()  
         except Exception:
-            await session.rollback()
+            await session.rollback()  
             raise
+        finally:
+            await session.close()    # Optional: explicit close (async_session_maker context manager does this automatically)
