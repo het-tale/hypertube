@@ -2,7 +2,14 @@ export interface User {
   id: string
   email: string
   username: string
-  profilPic?: string
+  full_name?: string
+
+  profile_picture?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  preferred_language?: string
+  bio?: string
   // add other user fields
 }
 

@@ -1,4 +1,11 @@
+import { useMe } from '@/features/auth/hooks/useAuthQueries'
+import { Link } from '@tanstack/react-router'
+
 const UserLogedInNavbar = () => {
+  const { data: user } = useMe() // TODO: get user data from context or hook
+
+  console.log('Logged in user:', user)
+  console.log('Logged in user:', user?.profile_picture)
   return (
     <header className="sticky top-0 z-50 glass-nav dark:border-border-dark px-6 lg:px-20 py-4">
       <div className="max-w-360 mx-auto flex items-center justify-between gap-8">
@@ -51,15 +58,17 @@ const UserLogedInNavbar = () => {
             <span className="material-symbols-outlined">notifications</span>
             <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background-dark"></span>
           </button>
-          <div
+          <Link
+            to="/settings/profile"
             className="size-10 rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-primary transition-all"
           >
             <img
               className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
               data-alt="User profile avatar with red abstract accent"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuADhnoVQIKMczONVrmyvCaZMTIT5vTUCyqnGI3a1HgxLECLv64c42F-HQqoNxrCz3z_UYS_xIIIUV9jej53t2zrm-wOie8O_XkKh2Rl_yLUSYnHXNl4UXOll_R4BsN-NbG7Mz5k2khk-mOmLKm6Or5CCmB2avXeXIvpbjPgiKypMKhUFVv9hDejIvzPYC9ksRgqTYTB1Zi_xKX1AXuiYV2XVJ444-mVH2NQiNQPkxpyhztn1kKOGDpwGy9HSZOAEnSeBejN_MypPUw"
+              src={user?.profile_picture}
             />
-          </div>
+          </Link>
         </div>
       </div>
     </header>
