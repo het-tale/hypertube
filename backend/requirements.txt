@@ -27,3 +27,4 @@ pytest-asyncio==0.23.3
 httpx==0.26.0
 
 aiofiles==23.2.1  # For async file operations (profile picture uploads)
+itsdangerous==2.1.2
