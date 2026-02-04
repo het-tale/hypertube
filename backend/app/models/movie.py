@@ -1,5 +1,6 @@
+from sqlalchemy import String
 from app.db.session import Base
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from app.models.cast import Cast
 from app.models.comment import Comment
@@ -11,7 +12,7 @@ from app.models.video import Video
 class Movie(Base):
     __tablename__ = "movies"
     # other fields
-
+    id: Mapped[str] = mapped_column(String, primary_key=True)
     # Relationships
     cast: Mapped[list["Cast"]] = relationship(
         "Cast",
@@ -31,7 +32,7 @@ class Movie(Base):
         back_populates="movie",
         cascade="all, delete-orphan",
     )
-    watch_history: Mapped[list["Subtitle"]] = relationship(
+    subtitle: Mapped[list["Subtitle"]] = relationship(
         "Subtitle",
         back_populates="movie",
         cascade="all, delete-orphan",
