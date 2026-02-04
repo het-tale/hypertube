@@ -11,7 +11,7 @@ from sqlalchemy import (
 from app.db.session import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.app.core.security import utcnow
+from app.core.security import utcnow
 
 if TYPE_CHECKING:
     from app.models.movie import Movie
@@ -45,7 +45,7 @@ class WatchHistory(Base):
     movie: Mapped["Movie"] = relationship("Movie", back_populates="watch_history")
     user: Mapped["User"] = relationship("User", back_populates="watch_history")
 
-    __table_args__ = UniqueConstraint("movie_id", "user_id", name="movie_user_uc")
+    __table_args__ = (UniqueConstraint("movie_id", "user_id", name="movie_user_uc"),)
 
     def __repr__(self) -> str:
         return f"<Watch History(id={self.id}, movie_id='{self.movie_id}', watched_at='{self.watched_at}')>"

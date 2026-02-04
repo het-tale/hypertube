@@ -9,6 +9,7 @@ from app.models.video import Video
 
 
 class Movie(Base):
+    __tablename__ = "movies"
     # other fields
 
     # Relationships

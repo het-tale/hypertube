@@ -10,7 +10,7 @@ from sqlalchemy import (
 from app.db.session import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.app.core.security import utcnow
+from app.core.security import utcnow
 
 if TYPE_CHECKING:
     from app.models.movie import Movie
