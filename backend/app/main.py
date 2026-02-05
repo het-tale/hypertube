@@ -1,4 +1,5 @@
 """Main FastAPI application."""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,6 +8,7 @@ from app.core.config import settings
 from app.users.router import router as users_router
 from app.Oauth.router import router as oauth_router
 from starlette.middleware.sessions import SessionMiddleware
+from app.routers.main import main_router
 
 
 def create_application() -> FastAPI:
@@ -14,7 +16,7 @@ def create_application() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
         debug=settings.DEBUG,
-        description="Production-ready FastAPI with secure cookie-based JWT authentication",
+        description="Video streaming app",
         version="1.0.0",
     )
 
@@ -36,6 +38,7 @@ def create_application() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(users_router)
     app.include_router(oauth_router)
+    app.include_router(main_router)
 
     @app.get("/")
     async def root():
