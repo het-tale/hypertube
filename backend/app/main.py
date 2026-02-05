@@ -1,4 +1,5 @@
 """Main FastAPI application."""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,7 +18,7 @@ def create_application() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
         debug=settings.DEBUG,
-        description="Production-ready FastAPI with secure cookie-based JWT authentication",
+        description="Video streaming app",
         version="1.0.0",
     )
 
