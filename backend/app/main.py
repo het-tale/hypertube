@@ -7,8 +7,8 @@ from app.auth.router import router as auth_router
 from app.core.config import settings
 from app.users.router import router as users_router
 from app.Oauth.router import router as oauth_router
+from app.movies.router import movie_router
 from starlette.middleware.sessions import SessionMiddleware
-from app.routers.main import main_router
 
 
 def create_application() -> FastAPI:
@@ -38,7 +38,7 @@ def create_application() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(users_router)
     app.include_router(oauth_router)
-    app.include_router(main_router)
+    app.include_router(movie_router)
 
     @app.get("/")
     async def root():

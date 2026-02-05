@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from app.db.session import get_db
-from app.services.movie import movie_service
+from app.movies.service import movie_service
 
 movie_router = APIRouter(prefix="/movies", tags=["Movies"])
 
