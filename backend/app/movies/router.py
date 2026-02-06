@@ -1,160 +1,261 @@
-from fastapi import APIRouter, HTTPException, Query, status, Depends
-from app.movies.archiveOrg_service import ArchiveOrgService
+# app/movies/router.py
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, Query, status, Depends, BackgroundTasks
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-
-
 from app.db.session import get_db
+from app.models.movie import Movie
 from app.movies.service import movie_service
-import httpx
+from app.movies.archiveOrg_service import ArchiveOrgService
+import logging
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/movies", tags=["movies"])
 
-
-
-
 # Initialize service
-archive_service = ArchiveOrgService()
-
-
-
+# archive_service = ArchiveOrgService()
 
 
 @router.get("/search")
 async def search_movies(
-    q: str = Query(..., min_length=1, description="Search query"),
+    q: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=50, description="Results per page"),
+    use_cache: bool = Query(True, description="Use cached results if available"),
+    db: AsyncSession = Depends(get_db)
 ):
     """
-    Search for movies from Archive.org
+    Search for movies with caching strategy.
     
     Example: GET /api/movies/search?q=night+living+dead&page=1&limit=20
     """
-    if not q:
-        raise HTTPException(status_code=400, detail="Query parameter 'q' is required")
+    if not q or len(q.strip()) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Query parameter 'q' must be at least 2 characters"
+        )
     
-    results = await archive_service.search_movies(q, page, limit)
+    try:
+        result = await movie_service.search_movies(
+            db=db,
+            query=q.strip(),
+            page=page,
+            limit=limit,
+            use_cache=use_cache
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Search error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Search failed: {str(e)}"
+        )
+
+
+@router.get("/popular")
+async def get_popular_movies(
+    limit: int = Query(20, ge=1, le=100, description="Number of movies"),
+    page: int = Query(1, ge=1, description="Page number"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get popular movies from cache.
+    These are updated weekly by a cron job.
+    """
+    try:
+        offset = (page - 1) * limit
+        movies = await movie_service.get_popular_movies(db, limit, offset)
+        
+        return {
+            "page": page,
+            "limit": limit,
+            "total": len(movies),
+            "movies": [movie.get_basic_info() for movie in movies]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching popular movies: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch popular movies"
+        )
+
+
+@router.post("/popular/refresh")
+async def refresh_popular_movies(
+    background_tasks: BackgroundTasks,
+    limit: int = Query(50, ge=10, le=200, description="Number of movies to fetch"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Manually trigger refresh of popular movies.
+    Usually called by cron job weekly.
+    """
+    # Run in background to avoid timeout
+    background_tasks.add_task(
+        movie_service.fetch_and_store_popular_movies,
+        db=db,
+        limit=limit
+    )
     
     return {
-        "query": q,
-        "page": page,
+        "message": "Popular movies refresh started in background",
         "limit": limit,
-        "results": results,
-        "total": len(results),
+        "status": "processing"
     }
 
 
 @router.get("/{identifier}")
-async def get_movie_details(identifier: str):
+async def get_movie_details(
+    identifier: str,
+    refresh: bool = Query(False, description="Force refresh from external source"),
+    db: AsyncSession = Depends(get_db)
+):
     """
-    Get detailed information about a specific movie
+    Get full movie details with caching.
     
-    Example: GET /api/movies/night_of_the_living_dead
+    Example: GET /api/movies/night_of_the_living_dead?refresh=true
     """
-    movie = await archive_service.get_movie_details(identifier)
-    
-    if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found")
-    
-    return movie
+    try:
+        movie = await movie_service.get_movie_details(
+            db=db,
+            identifier=identifier,
+            force_refresh=refresh
+        )
+        
+        if not movie:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Movie '{identifier}' not found"
+            )
+        
+        return {
+            "movie": movie.get_full_info(),
+            "source": "cache" if not refresh else "external",
+            "metadata_age_days": (
+                (datetime.utcnow() - movie.metadata_fetched_at).days
+                if movie.metadata_fetched_at
+                else None
+            ),
+            "is_available": movie.is_available(),
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching movie details: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch movie details: {str(e)}"
+        )
 
 
 @router.get("/{identifier}/torrent")
 async def get_torrent_file(identifier: str):
     """
-    Download the .torrent file for a movie
+    Download the .torrent file for a movie.
     
     Example: GET /api/movies/night_of_the_living_dead/torrent
     """
     from fastapi.responses import Response
     
-    torrent_data = await archive_service.get_torrent_file(identifier)
-    
-    if not torrent_data:
-        raise HTTPException(status_code=404, detail="Torrent file not found")
-    
-    return Response(
-        content=torrent_data,
-        media_type="application/x-bittorrent",
-        headers={
-            "Content-Disposition": f"attachment; filename={identifier}.torrent"
+    try:
+        archive_service = ArchiveOrgService()
+        torrent_data = await archive_service.get_torrent_file(identifier)
+        
+        if not torrent_data:
+            raise HTTPException(
+                status_code=404,
+                detail="Torrent file not found"
+            )
+        
+        return Response(
+            content=torrent_data,
+            media_type="application/x-bittorrent",
+            headers={
+                "Content-Disposition": f"attachment; filename={identifier}.torrent"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error downloading torrent: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to download torrent: {str(e)}"
+        )
+
+
+@router.post("/cache/cleanup")
+async def cleanup_cache(
+    days_threshold: int = Query(90, ge=30, le=365, description="Days of inactivity"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Clean up stale cached movies.
+    Should be called periodically by cron job.
+    """
+    try:
+        result = await movie_service.cleanup_stale_cache(
+            db=db,
+            days_threshold=days_threshold
+        )
+        
+        return {
+            "message": "Cache cleanup completed",
+            **result
         }
-    )
+        
+    except Exception as e:
+        logger.error(f"Cache cleanup error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Cache cleanup failed: {str(e)}"
+        )
+
+
+@router.get("/stats/cache")
+async def get_cache_stats(db: AsyncSession = Depends(get_db)):
+    """
+    Get caching statistics.
+    """
+    from sqlalchemy import func, select
     
-
-
-# @router.get("/{movie_id}")
-# async def get_movie_detail(movie_id: str, db: AsyncSession = Depends(get_db)):
-#     """
-#     Get detailed information about a Movie
-
-#     Args:
-#         movie_id (str): The id of the movie we looking for
-#         db (AsyncSession): Database dependency
-#     """
-#     movie = movie_service.get_movie(movie_id, db)
-#     if not movie:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"Movie with id '{movie_id}' not found",
-#         )
-#     response = {
-#         "id": movie.id,
-#         "year": movie.year,
-#         "rating": movie.rating,
-#         "genres": movie.genres,
-#         "summary": movie.summary,
-#         "poster_url": movie.poster_url,
-#         "duration": movie.duration,
-#         "source": movie.source,
-#         "torrent_url": movie.torrent_hash,
-#         "magnet_link": movie.magnet_link,
-#         "cast": [
-#             {
-#                 "id": c.id,
-#                 "name": c.name,
-#                 "role": c.role,
-#                 "character": c.character,
-#                 "order": c.display_order,
-#             }
-#             for c in sorted(
-#                 movie.cast, key=lambda x: x.display_order if x.display_order else 999
-#             )
-#         ],
-#         "video": (
-#             {
-#                 "status": movie.video.status,
-#                 "file_path": movie.video.file_path,
-#                 "progress": movie.video.progress,
-#                 "downloaded_at": (
-#                     movie.video.downloaded_at.isoformat()
-#                     if movie.video.downloaded_at
-#                     else None
-#                 ),
-#                 "file_size": movie.video.file_size,
-#                 "duration": movie.video.duration,
-#                 "is_streamable": movie.video.is_streamable,
-#             }
-#             if movie.video
-#             else None
-#         ),
-#         "comments": [
-#             {
-#                 "id": c.id,
-#                 "user": {
-#                     "id": c.user.id,
-#                     "username": c.user.username,
-#                     "profile_picture": c.user.profile_picture,
-#                 },
-#                 "content": c.content,
-#                 "created_at": c.created_at.isoformat(),
-#                 "updated_at": c.updated_at.isoformat() if c.updated_at else None,
-#             }
-#             for c in sorted(movie.comment, key=lambda x: x.created_at, reverse=True)
-#         ],
-#         "comments_count": len(movie.comment),
-#         "created_at": movie.created_at.isoformat(),
-#         "updated_at": movie.updated_at.isoformat() if movie.updated_at else None,
-#     }
-#     return response
+    try:
+        # Total movies in cache
+        total_stmt = select(func.count()).select_from(Movie)
+        total_result = await db.execute(total_stmt)
+        total = total_result.scalar()
+        
+        # Popular movies count
+        popular_stmt = select(func.count()).where(Movie.is_popular == True)
+        popular_result = await db.execute(popular_stmt)
+        popular = popular_result.scalar()
+        
+        # Downloaded movies count
+        downloaded_stmt = select(func.count()).where(Movie.downloaded == True)
+        downloaded_result = await db.execute(downloaded_stmt)
+        downloaded = downloaded_result.scalar()
+        
+        # Average search hits
+        avg_hits_stmt = select(func.avg(Movie.search_cache_hits))
+        avg_hits_result = await db.execute(avg_hits_stmt)
+        avg_hits = avg_hits_result.scalar() or 0
+        
+        return {
+            "total_movies": total,
+            "popular_movies": popular,
+            "downloaded_movies": downloaded,
+            "avg_search_hits": round(avg_hits, 2),
+            "cache_efficiency": f"{popular}/{total} popular movies cached",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Stats error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to get cache stats"
+        )

@@ -14,7 +14,8 @@ from app.db.session import Base
 # from app.models import models  # noqa: F401 - needed for Alembic to see models
 from app.models import models  # noqa: F401 - needed for Alembic to see models
 from app.models.movie import Movie
-from app.models.cast import Cast
+from app.models.cast import CastMember
+from app.models.genre import Genre
 from app.models.video import Video
 from app.models.comment import Comment
 from app.models.subtitle import Subtitle

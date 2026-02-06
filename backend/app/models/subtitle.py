@@ -35,7 +35,7 @@ class Subtitle(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=utcnow, nullable=False
     )
-    movie: Mapped["Movie"] = relationship("Movie", back_populates="subtitle")
+    movie: Mapped["Movie"] = relationship("Movie", back_populates="subtitles")
 
     __table_args__ = (
         UniqueConstraint("movie_id", "language", name="movie_language_uc"),

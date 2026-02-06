@@ -21,10 +21,10 @@ class RoleType(str, Enum):
     WRITER = "writer"
 
 
-class Cast(Base):
+class CastMember(Base):
     """Cast model"""
 
-    __tablename__ = "casts"
+    __tablename__ = "cast_members"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     movie_id: Mapped[str] = mapped_column(
@@ -41,7 +41,7 @@ class Cast(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=utcnow, nullable=False
     )
-    movie: Mapped["Movie"] = relationship("Movie", back_populates="cast")
+    movie: Mapped["Movie"] = relationship("Movie", back_populates="cast_members")
 
     def __repr__(self):
         """String representation for debugging"""
@@ -55,6 +55,6 @@ class Cast(Base):
             "name": self.name,
             "role": self.role,
             "character": self.character,
-            "order": self.order_index,
+            "order": self.display_order,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

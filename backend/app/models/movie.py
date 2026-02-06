@@ -1,46 +1,38 @@
 # app/models/movie.py
-
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from sqlalchemy import (
-    Boolean, DateTime, Float, Integer, String, Text, JSON, Index
+    Boolean, DateTime, Float, Integer, String, Text, JSON, Index, ARRAY
 )
 from sqlalchemy.orm import Mapped, relationship, mapped_column
+from sqlalchemy.dialects.postgresql import ARRAY
 from app.db.session import Base
+from app.models.cast import CastMember
 from app.models.genre import movie_genres
+from app.models.video import Video
+from app.models.subtitle import Subtitle
 
 if TYPE_CHECKING:
     from app.models.genre import Genre
-    from app.models.cast import Cast
+    # from app.models.cast import CastMember
     from app.models.comment import Comment
     from app.models.watch_history import WatchHistory
-    from app.models.subtitle import Subtitle
-    from app.models.video import Video
+    # from app.models.subtitle import Subtitle
+    # from app.models.video import Video
 
 
 class Movie(Base):
-    """
-    Movie model for storing movie metadata from external sources.
-    
-    Supports multiple sources (Archive.org, YTS, etc.) with source-specific
-    fields stored in JSON for flexibility.
-    """
     __tablename__ = "movies"
 
     # ============================================================================
-    # PRIMARY FIELDS
+    # PRIMARY & SOURCE FIELDS
     # ============================================================================
-    
-    # Primary key - unique identifier from source
-    # e.g., "charlie_chaplin_film_fest" for Archive.org
-    # or "tt1375666" for IMDb/YTS
     id: Mapped[str] = mapped_column(
         String(255), 
         primary_key=True,
         comment="Unique identifier from source (Archive.org ID or IMDb ID)"
     )
-
-    # ✅ ADDED: Source identifier for multi-source support
+    
     source: Mapped[str] = mapped_column(
         String(50), 
         nullable=False,
@@ -49,29 +41,76 @@ class Movie(Base):
     )
 
     # ============================================================================
-    # BASIC MOVIE INFO (Common across all sources)
+    # CACHING & SEARCH FIELDS
     # ============================================================================
     
-    title: Mapped[str] = mapped_column(
-        String(500),  # ⚠️ CHANGED: 255 → 500 (some titles are long)
+    search_cache_hits: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
         nullable=False,
-        index=True  # ✅ ADDED: For search performance
+        comment="Number of times this movie was returned in search results"
     )
     
+    last_searched_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+        comment="Last time this movie appeared in search results"
+    )
+    
+    is_popular: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
+        comment="Marked as popular movie (from weekly cron)"
+    )
+    
+    popularity_rank: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+        comment="Rank in popularity list (lower = more popular)"
+    )
+    
+    popularity_score: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+        comment="Computed popularity score (downloads * rating)"
+    )
+    
+    # Cache metadata
+    metadata_fetched_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+        comment="When full metadata was last fetched from external source"
+    )
+    
+    metadata_freshness_days: Mapped[int] = mapped_column(
+        Integer,
+        default=30,
+        nullable=False,
+        comment="How many days before metadata should be refreshed"
+    )
 
+    # ============================================================================
+    # BASIC MOVIE INFO
+    # ============================================================================
+    title: Mapped[str] = mapped_column(
+        String(500),
+        nullable=False,
+        index=True
+    )
+    
     description: Mapped[str | None] = mapped_column(
         Text, 
-        nullable=True,
-        comment="Movie plot/summary"
+        nullable=True
     )
     
     year: Mapped[int | None] = mapped_column(
         Integer, 
         nullable=True,
-        index=True  # ✅ ADDED: For filtering by year
+        index=True
     )
     
-    # Runtime in seconds (not minutes!)
     runtime: Mapped[int | None] = mapped_column(
         Integer, 
         nullable=True,
@@ -83,12 +122,10 @@ class Movie(Base):
         nullable=True
     )
     
-
     language: Mapped[str | None] = mapped_column(
         String(10),
         nullable=True,
-        index=True,
-        comment="Language code (en, fr, es, etc.)"
+        index=True
     )
     
     poster_url: Mapped[str | None] = mapped_column(
@@ -97,199 +134,151 @@ class Movie(Base):
     )
 
     # ============================================================================
-    # RATINGS (Multi-source support)
+    # RATINGS
     # ============================================================================
-    
-
     archive_rating: Mapped[float | None] = mapped_column(
-        Float,  # ✅ FIXED: Was Integer
+        Float,
         nullable=True,
         comment="Rating from Archive.org (0-5 stars)"
     )
     
-    # ✅ ADDED: IMDb rating (for YTS and other sources)
     imdb_rating: Mapped[float | None] = mapped_column(
         Float,
         nullable=True,
-        index=True,  # For filtering by rating
-        comment="IMDb rating (0-10)"
+        index=True
     )
     
-    # ✅ ADDED: IMDb ID for cross-referencing
     imdb_id: Mapped[str | None] = mapped_column(
         String(20),
         nullable=True,
         unique=True,
-        index=True,
-        comment="IMDb ID (e.g., tt1375666)"
+        index=True
     )
 
     # ============================================================================
-    # SOURCE-SPECIFIC FIELDS (Archive.org)
+    # SOURCE-SPECIFIC FIELDS
     # ============================================================================
-    
     archive_url: Mapped[str | None] = mapped_column(
         String(1000), 
-        nullable=True,
-        comment="Archive.org details page URL"
+        nullable=True
     )
     
-    # Number of times downloaded from Archive.org
     downloads: Mapped[int] = mapped_column(
         Integer, 
         default=0, 
-        nullable=False,
-        comment="Download count from source"
+        nullable=False
     )
     
     num_reviews: Mapped[int] = mapped_column(
         Integer, 
         default=0, 
-        nullable=False,
-        comment="Number of reviews from source"
+        nullable=False
     )
 
     # ============================================================================
-    # TORRENT INFO (Stored as JSON for flexibility)
+    # TORRENT INFO
     # ============================================================================
-    
-    # ✅ ADDED: Store all available torrents as JSON
-    # Allows multiple qualities, formats, sources
     torrents: Mapped[dict | None] = mapped_column(
         JSON,
-        nullable=True,
-        comment="Available torrents with quality, magnet links, seeders, etc."
+        nullable=True
     )
-    # Example structure:
-    # {
-    #     "720p": {
-    #         "quality": "720p",
-    #         "magnet": "magnet:?xt=...",
-    #         "torrent_url": "https://...",
-    #         "seeders": 150,
-    #         "leechers": 20,
-    #         "size_bytes": 900000000,
-    #         "file_format": "mp4"
-    #     },
-    #     "1080p": { ... }
-    # }
+    
+    # Search keywords for better matching
+    search_keywords: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(100)),
+        nullable=True,
+        comment="Keywords for search optimization"
+    )
 
     # ============================================================================
-    # DOWNLOAD STATUS (Critical for Hypertube functionality)
+    # DOWNLOAD STATUS
     # ============================================================================
-    
-    # ✅ ADDED: Is file downloaded and ready to stream?
     downloaded: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
         nullable=False,
-        index=True,  # For filtering available movies
-        comment="Whether movie file is downloaded and available"
+        index=True
     )
     
-    # ✅ ADDED: Download status tracking
     download_status: Mapped[str | None] = mapped_column(
         String(50),
-        nullable=True,
-        comment="Download status: null, queued, downloading, processing, complete, failed"
+        nullable=True
     )
     
-    # ✅ ADDED: Download progress (0-100)
     download_progress: Mapped[int] = mapped_column(
         Integer,
         default=0,
-        nullable=False,
-        comment="Download progress percentage (0-100)"
+        nullable=False
     )
     
-    # ✅ ADDED: Error message if download failed
     download_error: Mapped[str | None] = mapped_column(
         Text,
-        nullable=True,
-        comment="Error message if download failed"
+        nullable=True
     )
     
-    # ✅ ADDED: Path to downloaded file on server
     file_path: Mapped[str | None] = mapped_column(
         String(1000),
-        nullable=True,
-        comment="Path to downloaded video file on server"
+        nullable=True
     )
     
-    # ✅ ADDED: File size in bytes
     file_size: Mapped[int | None] = mapped_column(
         Integer,
-        nullable=True,
-        comment="Downloaded file size in bytes"
+        nullable=True
     )
     
-    # ✅ ADDED: Which quality was downloaded
     downloaded_quality: Mapped[str | None] = mapped_column(
         String(20),
-        nullable=True,
-        comment="Quality of downloaded file (720p, 1080p, etc.)"
+        nullable=True
     )
 
     # ============================================================================
-    # WATCH TRACKING (For 30-day cleanup rule)
+    # WATCH TRACKING
     # ============================================================================
-    
-    # ✅ ADDED: When was this movie last watched by ANY user
     last_watched_at: Mapped[datetime | None] = mapped_column(
         DateTime,
         nullable=True,
-        index=True,  # For cleanup queries
-        comment="Last time any user watched this movie"
+        index=True
     )
     
-    # ✅ ADDED: Total view count across all users
     view_count: Mapped[int] = mapped_column(
         Integer,
         default=0,
-        nullable=False,
-        comment="Total number of times movie was watched"
+        nullable=False
     )
 
     # ============================================================================
-    # METADATA TIMESTAMPS
+    # TIMESTAMPS
     # ============================================================================
-    
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
-        nullable=False,
-        comment="When movie was added to database"
+        nullable=False
     )
     
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
-        nullable=False,
-        comment="Last metadata update"
+        nullable=False
     )
 
     # ============================================================================
     # RELATIONSHIPS
     # ============================================================================
-    
-    # Genres (many-to-many)
     genres: Mapped[list["Genre"]] = relationship(
         "Genre",
         secondary=movie_genres,
         back_populates="movies",
-        lazy="selectin"  # ✅ ADDED: Eager load genres
+        lazy="selectin"
     )
     
-    # Cast members
-    cast: Mapped[list["Cast"]] = relationship(
-        "Cast",
+    cast_members: Mapped[list["CastMember"]] = relationship(
+        "CastMember",
         back_populates="movie",
         cascade="all, delete-orphan",
         lazy="selectin"
     )
     
-    # ⚠️ CHANGED: video → videos (one movie can have multiple video files)
     videos: Mapped[list["Video"]] = relationship(
         "Video",
         back_populates="movie",
@@ -297,22 +286,19 @@ class Movie(Base):
         lazy="selectin"
     )
     
-    # Comments
-    comments: Mapped[list["Comment"]] = relationship(
+    comment : Mapped[list["Comment"]] = relationship(
         "Comment",
         back_populates="movie",
         cascade="all, delete-orphan",
-        order_by="Comment.created_at.desc()"  # ✅ ADDED: Order by newest first
+        order_by="Comment.created_at.desc()"
     )
     
-    # Watch history (per user)
     watch_history: Mapped[list["WatchHistory"]] = relationship(
         "WatchHistory",
         back_populates="movie",
         cascade="all, delete-orphan"
     )
     
-    # Subtitles
     subtitles: Mapped[list["Subtitle"]] = relationship(
         "Subtitle",
         back_populates="movie",
@@ -321,30 +307,20 @@ class Movie(Base):
     )
 
     # ============================================================================
-    # TABLE INDEXES (For performance)
+    # TABLE INDEXES
     # ============================================================================
-    
     __table_args__ = (
-        # ✅ ADDED: Composite index for cleanup queries
-        Index(
-            'ix_movies_cleanup',
-            'downloaded',
-            'last_watched_at',
-            postgresql_where="downloaded = true"
-        ),
-        # ✅ ADDED: Index for popular movies
-        Index('ix_movies_popular', 'view_count', 'archive_rating'),
-        # ✅ ADDED: Index for search by title and year
-        Index('ix_movies_search', 'title', 'year'),
+        Index('ix_movies_cleanup', 'downloaded', 'last_watched_at'),
+        Index('ix_movies_popular', 'popularity_score', 'is_popular'),
+        Index('ix_movies_search', 'title', 'year', 'search_keywords'),
+        Index('ix_movies_cache', 'metadata_fetched_at', 'source'),
     )
 
     # ============================================================================
     # HELPER METHODS
     # ============================================================================
-    
     def __repr__(self) -> str:
         return f"<Movie(id={self.id}, title={self.title}, source={self.source})>"
-    
     def is_available(self) -> bool:
         """Check if movie is downloaded and ready to stream."""
         return self.downloaded and self.file_path is not None
@@ -372,3 +348,67 @@ class Movie(Base):
             return self.torrents[available[0]]
         
         return None
+    
+    def increment_search_hits(self):
+        """Increment search counter and update timestamp."""
+        self.search_cache_hits += 1
+        self.last_searched_at = datetime.utcnow()
+    
+    def is_metadata_stale(self) -> bool:
+        """Check if metadata needs refresh."""
+        if not self.metadata_fetched_at:
+            return True
+        
+        days_since_fetch = (datetime.utcnow() - self.metadata_fetched_at).days
+        return days_since_fetch > self.metadata_freshness_days
+    
+    def update_popularity_score(self):
+        """Calculate and update popularity score."""
+        # Base score from downloads
+        base_score = self.downloads or 0
+        
+        # Boost from rating (if available)
+        rating = self.archive_rating or self.imdb_rating or 0
+        if rating > 0:
+            # Normalize rating impact (0-5 star or 0-10 scale)
+            rating_factor = rating / 5.0 if self.archive_rating else rating / 10.0
+            base_score *= (1 + rating_factor)
+        
+        self.popularity_score = base_score
+    
+    def get_basic_info(self) -> dict:
+        """Return basic movie info for search results."""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "year": self.year,
+            "rating": self.archive_rating or self.imdb_rating,
+            "cast": [c.name for c in self.cast_members] if self.cast_members else [],
+            "genres": [g.name for g in self.genres] if self.genres else [],
+            "poster_url": self.poster_url,
+            "runtime": self.runtime,
+            "source": self.source,
+            "is_available": self.is_available(),
+            "downloads": self.downloads,
+        }
+    
+    def get_full_info(self) -> dict:
+        """Return complete movie info."""
+        basic = self.get_basic_info()
+        basic.update({
+            "description": self.description,
+            "director": self.director,
+            "language": self.language,
+            "imdb_id": self.imdb_id,
+            "archive_url": self.archive_url,
+            "num_reviews": self.num_reviews,
+            "torrents": self.torrents,
+            "view_count": self.view_count,
+            "last_watched_at": self.last_watched_at.isoformat() if self.last_watched_at else None,
+            "metadata_fetched_at": self.metadata_fetched_at.isoformat() if self.metadata_fetched_at else None,
+            "search_cache_hits": self.search_cache_hits,
+            "popularity_rank": self.popularity_rank,
+            "popularity_score": self.popularity_score,
+            "is_popular": self.is_popular,
+        })
+        return basic

@@ -61,7 +61,7 @@ class Video(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=utcnow, nullable=False
     )
-    movie: Mapped["Movie"] = relationship("Movie", back_populates="video")
+    movie: Mapped["Movie"] = relationship("Movie", back_populates="videos")
 
     __table_args__ = (
         CheckConstraint(

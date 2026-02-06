@@ -31,7 +31,7 @@ class Genre(Base):
     movies: Mapped[list["Movie"]] = relationship(
         "Movie",
         secondary=movie_genres,
-        back_populates="genres_rel"  # Note: different name to avoid conflict
+        back_populates="genres"  # Note: different name to avoid conflict
     )
     
     def __repr__(self):
