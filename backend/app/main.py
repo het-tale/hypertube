@@ -1,8 +1,10 @@
 """Main FastAPI application."""
 
-from fastapi import FastAPI
+from sched import scheduler
+from fastapi import FastAPI, logger
 from fastapi.middleware.cors import CORSMiddleware
 
+import app
 from app.auth.router import router as auth_router
 from app.core.config import settings
 from app.users.router import router as users_router
@@ -10,6 +12,8 @@ from app.Oauth.router import router as oauth_router
 from app.movies.router import router as movies_router
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
+from app.core.scheduler import scheduler
+
 
 
 
@@ -44,6 +48,21 @@ def create_application() -> FastAPI:
     app.include_router(oauth_router)
     app.include_router(movies_router)
 
+
+    @app.on_event("startup")
+    async def startup_event():
+        """Start background tasks on startup."""
+        # Start the scheduler
+        scheduler.start()
+        # logger.info("Application started with scheduler")
+
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        """Clean shutdown."""
+        scheduler.shutdown()
+        # logger.info("Application shutdown complete")
+    
     @app.get("/")
     async def root():
         """Root endpoint."""

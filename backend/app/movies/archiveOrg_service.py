@@ -30,9 +30,10 @@ class ArchiveOrgService:
         Returns:
             List of movie metadata with torrent links
         """
+        q = f"({query}) AND mediatype:movies" if query else "mediatype:movies"
         params = {
             # Search in movies collection
-            "q": f"({query}) AND mediatype:movies",
+            "q": q,
             # "q": f"({query}) AND mediatype:movies AND language:French",  # Added language filter for better results
             # "q": f"title:(hello) AND mediatype:(movies) AND language:(French)",  # Added language filter for better results
             
